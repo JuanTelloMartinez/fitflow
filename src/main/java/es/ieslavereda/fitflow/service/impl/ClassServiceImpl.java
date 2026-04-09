@@ -1,0 +1,7 @@
+package es.ieslavereda.fitflow.service.impl;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class ClassServiceImpl {
+}
