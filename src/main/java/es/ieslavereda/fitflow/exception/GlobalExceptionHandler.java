@@ -1,47 +1,61 @@
 package es.ieslavereda.fitflow.exception;
 
-import jakarta.validation.ConstraintViolationException;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(ResourceNotFoundException exception) {
-        return buildResponse(HttpStatus.NOT_FOUND, exception.getMessage());
-    }
 
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<Map<String, String>> handleBadRequest(BadRequestException exception) {
-        return buildResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
-    }
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleNotFound(ResourceNotFoundException ex) {
+		Map<String, String> response = new HashMap<>();
+		response.put("error", ex.getMessage());
+		response.put("status", "404");
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException exception) {
-        String message = exception.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .findFirst()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .orElse("Peticion no valida");
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+	}
 
-        return buildResponse(HttpStatus.BAD_REQUEST, message);
-    }
+	@ExceptionHandler(BadRequestException.class)
+	public ResponseEntity<Map<String, String>> handleBadRequest(BadRequestException ex) {
+		Map<String, String> response = new HashMap<>();
+		response.put("error", ex.getMessage());
+		response.put("status", "400");
 
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException exception) {
-        return buildResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
-    }
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
 
-    private ResponseEntity<Map<String, String>> buildResponse(HttpStatus status, String message) {
-        Map<String, String> body = new HashMap<>();
-        body.put("error", message);
-        body.put("status", String.valueOf(status.value()));
-        return ResponseEntity.status(status).body(body);
-    }
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
+		Map<String, String> response = new HashMap<>();
+
+		String errorMessage = ex.getBindingResult()
+				  .getFieldErrors()
+				  .stream()
+				  .findFirst()
+				  .map(error -> error.getField() + ": " + error.getDefaultMessage())
+				  .orElse("Petición no válida");
+
+		response.put("error", errorMessage);
+		response.put("status", "400");
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<Map<String, String>> handleUnreadableMessage(HttpMessageNotReadableException ex) {
+		Map<String, String> response = new HashMap<>();
+		String errorMessage = "JSON no valido o valor incompatible. Revisa fechas y enums como MENSUAL/ACTIVO.";
+
+		response.put("error", errorMessage);
+		response.put("status", "400");
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
 }
