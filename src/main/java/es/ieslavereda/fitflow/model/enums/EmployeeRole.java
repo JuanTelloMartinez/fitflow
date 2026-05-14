@@ -1,5 +1,5 @@
 package es.ieslavereda.fitflow.model.enums;
 
-public enum Role {
+public enum EmployeeRole {
 	ADMIN, TRAINER ,CLIENT
 }

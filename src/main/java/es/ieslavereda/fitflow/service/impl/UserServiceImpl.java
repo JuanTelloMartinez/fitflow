@@ -9,19 +9,16 @@ import es.ieslavereda.fitflow.model.entity.User;
 import es.ieslavereda.fitflow.repository.UserRepository;
 import es.ieslavereda.fitflow.service.UserService;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
-        this.userRepository = userRepository;
-        this.userMapper = userMapper;
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -64,9 +61,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(Long id) {
+    public UserDTO delete(Long id) {
         User user = getUserOrThrow(id);
+        UserDTO deletedUser = userMapper.toDTO(user);
         userRepository.delete(user);
+        return deletedUser;
     }
 
     private User getUserOrThrow(Long id) {
